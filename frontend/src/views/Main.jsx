@@ -109,7 +109,6 @@ export default class Main extends Component {
 
         //someone leave the room
         this.state.socket.on("onePlayer left", user => {
-            console.log(user);
             this.setState({
                 roomDOM: {
                     ...this.state.roomDOM,
@@ -117,7 +116,8 @@ export default class Main extends Component {
                     hideOpponent: true,
                     hideMyReady: user.socketid === this.state.socket.id ? false : user.ready,
                     hideMyOnMoveBorder: true,
-                    hideOpponentOnMoveBorder: true
+                    hideOpponentOnMoveBorder: true,
+                    toggleCells: false
                 },
                 gameRecord: {...initGame}
             });
