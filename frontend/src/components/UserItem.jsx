@@ -7,6 +7,7 @@ export const UserItem = (props) => {
         <li className="list-group-item d-flex justify-content-between align-items-start" style={isHover ? styles.listOnHover : null}
             onMouseEnter={() => setIsHover(true)}
             onMouseLeave={() => setIsHover(false)}
+            onClick={props.getUserGameHistory}
         >
             <div className="ms-2 me-auto">
                 <div className="fw-bold">{props.username}</div>

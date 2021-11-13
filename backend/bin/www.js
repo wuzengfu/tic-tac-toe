@@ -32,6 +32,7 @@ io.on("connection", socket => {
     socket.on("add user", username => {
         //set username in socket
         socket.username = username;
+        socket.gameHistory = [];
         console.log("A new user is added:  " + username);
         updateConnectedUsers();
     });
@@ -166,6 +167,30 @@ io.on("connection", socket => {
             };
             rooms[roomName].users[0].ready = false;
             rooms[roomName].users[1].ready = false;
+
+            //update game history
+            let opponentPosition = rooms[roomName].users[0].socketid === socket.id ? 1 : 0;
+            let gameStatus = ticTacToe.gameStatus;
+            let currentTime = new Date().toLocaleTimeString();
+            io.sockets.sockets.forEach(ele => {
+                if (ele.id === rooms[roomName].users[opponentPosition].socketid) { //opponentHistory
+                    if (gameStatus !== "draw") gameStatus = "lose";
+                    ele.gameHistory.push({
+                        opponentName: socket.username,
+                        myName: ele.username,
+                        result: gameStatus,
+                        time: currentTime
+                    });
+                } else if (ele.id === socket.id) { //my history
+                    if (gameStatus !== "draw") gameStatus = "win";
+                    ele.gameHistory.push({
+                        opponentName: rooms[roomName].users[opponentPosition].username,
+                        myName: ele.username,
+                        result: gameStatus,
+                        time: currentTime
+                    });
+                }
+            });
         }
     });
 
@@ -175,6 +200,14 @@ io.on("connection", socket => {
 
     socket.on("reject invitation", inviterSocketId => {
         socket.to(inviterSocketId).emit("reject invitation", socket.username);
+    });
+
+    socket.on("get game history", (socketid, callback) => {
+        io.sockets.sockets.forEach(ele => {
+            if (ele.id === socketid) {
+                return callback(ele.gameHistory);
+            }
+        })
     });
 
     socket.on("disconnect", () => {

@@ -4,7 +4,7 @@ export const UserList = (props) => {
     return (
         <ul className="list-group">
             {props.connectedUsers.map((user) =>
-                <UserItem username={user.username}/>
+                <UserItem username={user.username} getUserGameHistory={() => props.getUserGameHistory(user.socketid)}/>
             )}
         </ul>
     );
