@@ -169,6 +169,14 @@ io.on("connection", socket => {
         }
     });
 
+    socket.on("invite player", (selectedUser, roomName) => {
+        socket.to(selectedUser).emit("receive invitation", {socketid: socket.id, username: socket.username, roomName});
+    });
+
+    socket.on("reject invitation", inviterSocketId => {
+        socket.to(inviterSocketId).emit("reject invitation", socket.username);
+    });
+
     socket.on("disconnect", () => {
         console.log("A user has left");
 

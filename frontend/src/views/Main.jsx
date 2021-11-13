@@ -3,7 +3,15 @@ import styles from "../stylesheets/main.module.css";
 import SocketIoClient from 'socket.io-client';
 import userImage from "../images/user.png";
 import { baseURL } from '../config';
-import { Board, ExitBtn, RoomList, UserList, GameResultModal } from '../components';
+import {
+    Board,
+    ExitBtn,
+    RoomList,
+    UserList,
+    InviteGameModal,
+    GameInvitationModal,
+    NormalMsgModal
+} from '../components';
 
 const initGame = {1: '', 2: '', 3: '', 4: '', 5: '', 6: '', 7: '', 8: '', 9: ''};
 
@@ -15,22 +23,31 @@ export default class Main extends Component {
             username: this.props.match.params.username,
             socket: SocketIoClient(baseURL),
             connectedUsers: [],
+            availableUsers: [],
             rooms: [],
             roomName: null,
             tab: "mainTab",
-            disableReadyBtn: false,
-            hideMyReady: true,
-            hideMyImage: false,
-            hideOpponentReady: true,
-            opponentName: null,
-            hideOpponent: true,
-            hideMyOnMoveBorder: true,
-            hideOpponentOnMoveBorder: true,
+            roomDOM: {
+                disableReadyBtn: false,
+                hideMyReady: true,
+                hideMyImage: false,
+                hideOpponentReady: true,
+                opponentName: null,
+                hideOpponent: true,
+                hideMyOnMoveBorder: true,
+                hideOpponentOnMoveBorder: true,
+                toggleCells: false,
+            },
+            modal: {
+                showGameResult: false,
+                showGameInvitation: false,
+                showInviteGame: false,
+                normalMsg: {showNormalMsg: false, title: '', msg: ''}
+            },
             gameRecord: {...initGame},
-            toggleCells: false,
             firstPlayer: null,
-            showGameResult: false,
             gameResult: null,
+            invitation: {username: '', socketid: '', roomName: ''}
         }
 
     }
@@ -69,7 +86,7 @@ export default class Main extends Component {
                 //if it is opponent who presses ready
                 if (user.socketid !== this.state.socket.id && user.ready) {
                     //show opponent is ready
-                    this.setState({hideOpponentReady: false});
+                    this.setState({roomDOM: {...this.state.roomDOM, hideOpponentReady: false}});
                 }
             });
         });
@@ -78,34 +95,48 @@ export default class Main extends Component {
         this.state.socket.on("someone joined", users => {
             users.forEach(user => {
                 if (user.socketid !== this.state.socket.id) {
-                    this.setState({opponentName: user.username, hideOpponentReady: !user.ready, hideOpponent: false});
+                    this.setState({
+                        roomDOM: {
+                            ...this.state.roomDOM,
+                            opponentName: user.username,
+                            hideOpponentReady: !user.ready,
+                            hideOpponent: false
+                        }
+                    });
                 }
             });
         });
 
         //someone leave the room
         this.state.socket.on("onePlayer left", users => {
-            //hide opponent
-            this.setState({hideOpponentReady: true});
-            this.setState({hideOpponent: true});
-
-            this.setState({hideMyReady: !users[0].ready});
-
-            this.setState({hideMyOnMoveBorder: true});
-            this.setState({hideOpponentOnMoveBorder: true});
-
-            this.setState({gameRecord: {...initGame}});
+            this.setState({
+                roomDOM: {
+                    ...this.state.roomDOM,
+                    hideOpponentReady: true,
+                    hideOpponent: true,
+                    hideMyReady: !users[0].ready,
+                    hideMyOnMoveBorder: true,
+                    hideOpponentOnMoveBorder: true
+                },
+                gameRecord: {...initGame}
+            });
         });
 
         //game started
         this.state.socket.on("game start", game => {
-            this.setState({gameRecord: {...initGame}, hideMyReady: true, hideOpponentReady: true});
+            this.setState({
+                roomDOM: {...this.state.roomDOM, hideMyReady: true, hideOpponentReady: true},
+                gameRecord: {...initGame}
+            });
 
             //get who is assigned as first player
             if (game.firstPlayer === this.state.socket.id) { //I am the first player
-                this.setState({hideMyOnMoveBorder: false, toggleCells: true, firstPlayer: game.firstPlayer});
+                this.setState({
+                    roomDOM: {...this.state.roomDOM, hideMyOnMoveBorder: false, toggleCells: true},
+                    firstPlayer: game.firstPlayer
+                });
             } else { //the opponent is the first player
-                this.setState({hideOpponentOnMoveBorder: false, toggleCells: false});
+                this.setState({roomDOM: {...this.state.roomDOM, hideOpponentOnMoveBorder: false, toggleCells: false}});
             }
         });
 
@@ -115,9 +146,21 @@ export default class Main extends Component {
             gameRecord[coordinate.value] = movedBy === firstPlayer ? "X" : "O";
 
             if (movedBy === this.state.socket.id) { //myself made a move
-                this.setState({hideMyOnMoveBorder: true, hideOpponentOnMoveBorder: false, toggleCells: false});
+                this.setState({
+                    roomDOM: {
+                        ...this.state.roomDOM, hideMyOnMoveBorder: true, hideOpponentOnMoveBorder: false,
+                        toggleCells: false
+                    }
+                });
             } else {
-                this.setState({hideMyOnMoveBorder: false, hideOpponentOnMoveBorder: true, toggleCells: true});
+                this.setState({
+                    roomDOM: {
+                        ...this.state.roomDOM,
+                        hideMyOnMoveBorder: false,
+                        hideOpponentOnMoveBorder: true,
+                        toggleCells: true
+                    }
+                });
             }
         });
 
@@ -136,24 +179,62 @@ export default class Main extends Component {
             }
 
             this.setState({
-                hideMyOnMoveBorder: true,
-                hideOpponentOnMoveBorder: true,
-                showGameResult: true,
-                disableReadyBtn: false,
+                roomDOM: {
+                    ...this.state.roomDOM, hideMyOnMoveBorder: true,
+                    hideOpponentOnMoveBorder: true, disableReadyBtn: false,
+                },
+                modal: {...this.state.modal, normalMsg: {showNormalMsg: true, title: "Game Result", msg: gameResult}},
                 gameRecord: {...initGame},
                 gameResult
             });
         });
+
+        //receive invitation
+        this.state.socket.on("receive invitation", invitation => {
+            this.setState({invitation, modal: {...this.state.modal, showGameInvitation: true}});
+        });
+
+        //reject invitation
+        this.state.socket.on("reject invitation", username => {
+            console.log("reject");
+            this.setState({
+                modal: {
+                    ...this.state.modal,
+                    normalMsg: {
+                        showNormalMsg: true,
+                        title: "Invitation Status",
+                        msg: `${username} rejected your invitation!`
+                    }
+                }
+            });
+        })
+    }
+
+    handleInviteBtn = () => {
+        if (this.state.rooms[this.state.roomName].status === "Available") {
+            let availableUsers = [];
+            Object.keys(this.state.connectedUsers).forEach((key, i) => {
+                if (this.state.connectedUsers[key].socketid !== this.state.socket.id) {
+                    availableUsers.push(this.state.connectedUsers[key]);
+                }
+            });
+            this.setState({availableUsers, modal: {...this.state.modal, showInviteGame: true}});
+        } else {
+            alert("The room is occupied! You cannot invite other players!");
+        }
     }
 
 
     handleLeaveBtn = () => {
         this.state.socket.emit("leave room", this.state.roomName);
-        this.setState({disableReadyBtn: false, hideMyReady: true, hideMyImg: false, tab: "mainTab"});
+        this.setState({
+            roomDOM: {...this.state.roomDOM, disableReadyBtn: false, hideMyReady: true, hideMyImg: false},
+            tab: "mainTab"
+        });
     }
 
     handleReadyBtn = () => {
-        this.setState({hideMyReady: false, disableReadyBtn: true});
+        this.setState({roomDOM: {...this.state.roomDOM, hideMyReady: false, disableReadyBtn: true}});
         this.state.socket.emit("game ready", this.state.roomName);
     }
 
@@ -196,23 +277,24 @@ export default class Main extends Component {
                             <div className="col-3 d-flex flex-column-reverse">
                                 <ul className="list-group">
                                     <li onClick={this.handleLeaveBtn} className="btn btn-secondary">Leave</li>
-                                    <li onClick={this.handleLeaveBtn} className="btn btn-success">Invite</li>
+                                    <li onClick={this.handleInviteBtn} className="btn btn-success">Invite</li>
                                     <li onClick={this.handleReadyBtn}
-                                        className={`btn btn-danger ${this.state.disableReadyBtn ? 'disabled' : ''}`}>Ready
+                                        className={`btn btn-danger ${this.state.roomDOM.disableReadyBtn ? 'disabled' : ''}`}>Ready
                                     </li>
                                 </ul>
+
                             </div>
 
                             <div className="col-9">
                                 <div className="d-flex flex-row">
                                     <div
-                                        className={`user ${styles.user} ${this.state.hideOpponent ? 'invisible' : ''}`}>
+                                        className={`user ${styles.user} ${this.state.roomDOM.hideOpponent ? 'invisible' : ''}`}>
                                         <img src={userImage} alt="user"
-                                             className={`border border-dark ${this.state.hideOpponentOnMoveBorder ? '' : styles.showOnMoveBorder}`}/>
-                                        <p>{this.state.opponentName}</p>
+                                             className={`border border-dark ${this.state.roomDOM.hideOpponentOnMoveBorder ? '' : styles.showOnMoveBorder}`}/>
+                                        <p>{this.state.roomDOM.opponentName}</p>
                                     </div>
                                     <button
-                                        className={`readyBtn btn btn-outline-danger btn-sm h-25 mt-3 ${this.state.hideOpponentReady ? 'visually-hidden' : ''}`}
+                                        className={`readyBtn btn btn-outline-danger btn-sm h-25 mt-3 ${this.state.roomDOM.hideOpponentReady ? 'visually-hidden' : ''}`}
                                         disabled>
                                         Ready
                                     </button>
@@ -220,18 +302,18 @@ export default class Main extends Component {
 
                                 <Board
                                     gameRecord={this.state.gameRecord}
-                                    toggleCells={this.state.toggleCells}
+                                    toggleCells={this.state.roomDOM.toggleCells}
                                     roomName={this.state.roomName}
                                     socket={this.state.socket}/>
 
                                 <div className="d-flex flex-row">
                                     <div className={`user ${styles.user}`}>
                                         <img src={userImage} alt="user"
-                                             className={`border border-dark ${this.state.hideMyOnMoveBorder ? '' : styles.showOnMoveBorder}`}/>
+                                             className={`border border-dark ${this.state.roomDOM.hideMyOnMoveBorder ? '' : styles.showOnMoveBorder}`}/>
                                         <p>{this.state.username}</p>
                                     </div>
                                     <button
-                                        className={`btn btn-outline-danger btn-sm h-25 mt-3 ${this.state.hideMyReady ? 'visually-hidden' : ''}`}
+                                        className={`btn btn-outline-danger btn-sm h-25 mt-3 ${this.state.roomDOM.hideMyReady ? 'visually-hidden' : ''}`}
                                         disabled>Ready
                                     </button>
                                 </div>
@@ -239,10 +321,31 @@ export default class Main extends Component {
                         </div>}
                 </div>
 
-                <GameResultModal showGameResult={this.state.showGameResult}
-                                 gameResult={this.state.gameResult}
-                                 onHide={() => this.setState({showGameResult: false})}
+                <GameInvitationModal
+                    joinRoom={() => this.joinRoom(this.state.invitation.roomName)}
+                    socket={this.state.socket}
+                    invitation={this.state.invitation}
+                    showGameInvitationModal={this.state.modal.showGameInvitation}
+                    onHide={() => this.setState({modal: {...this.state.modal, showGameInvitation: false}})}
                 />
+
+                <InviteGameModal
+                    roomName={this.state.roomName}
+                    showInviteGameModal={this.state.modal.showInviteGame}
+                    availableUsers={this.state.availableUsers}
+                    socket={this.state.socket}
+                    onHide={() => this.setState({modal: {...this.state.modal, showInviteGame: false}})}
+                />
+
+                <NormalMsgModal
+                    showModal={this.state.modal.normalMsg.showNormalMsg}
+                    onHide={() => this.setState({
+                        modal: {...this.state.modal, normalMsg: {...this.state.normalMsg, showNormalMsg: false}}
+                    })}
+                    title={this.state.modal.normalMsg.title}
+                    msg={this.state.modal.normalMsg.msg}
+                />
+
             </div>
 
         );
