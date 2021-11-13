@@ -162,10 +162,11 @@ io.on("connection", socket => {
                 users: rooms[roomName].users,
                 game: null,
                 started: false,
-                status: "Available"
+                status: "Occupied"
             };
             rooms[roomName].users[0].ready = false;
             rooms[roomName].users[1].ready = false;
+            updateRooms();
         }
     });
 
