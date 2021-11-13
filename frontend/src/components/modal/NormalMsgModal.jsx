@@ -6,7 +6,9 @@ export const NormalMsgModal = (props) => {
         <Modal.Header closeButton>
             <Modal.Title>{props.title}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>{props.msg}</Modal.Body>
+        <Modal.Body>
+            {props.children}
+        </Modal.Body>
         <Modal.Footer>
             <Button variant="primary" onClick={props.onHide}>
                 OK

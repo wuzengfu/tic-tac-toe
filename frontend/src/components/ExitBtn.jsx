@@ -1,20 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Button } from 'react-bootstrap';
 
 export const ExitBtn = () => {
+    const [isHover, setIsHover] = useState(false);
+
     const handleExitBtn = () => {
         window.localStorage.clear();
         window.location.href = "/";
     }
 
     return (
-        <button className={`btn btn-light px-4`} onClick={handleExitBtn} style={styles.btn}>Exit</button>
+        <Button
+            variant={"light"}
+            className={"px-4"}
+            style={isHover ? styles.btnOnHover : null}
+            onClick={handleExitBtn}
+            onMouseEnter={() => setIsHover(true)}
+            onMouseLeave={() => setIsHover(false)}>Exit</Button>
     );
 };
 
 const styles = {
-    btn: {
-        "&:hover": {
-            backgroundColor: '#dcd7d7'
-        }
+    btnOnHover: {
+        backgroundColor: 'rgb(236,231,231)'
     }
 }

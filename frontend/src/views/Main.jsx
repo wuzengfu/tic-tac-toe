@@ -12,6 +12,7 @@ import {
     GameInvitationModal,
     NormalMsgModal
 } from '../components';
+import { Table } from "react-bootstrap";
 
 const initGame = {1: '', 2: '', 3: '', 4: '', 5: '', 6: '', 7: '', 8: '', 9: ''};
 
@@ -47,7 +48,8 @@ export default class Main extends Component {
             gameRecord: {...initGame},
             firstPlayer: null,
             gameResult: null,
-            invitation: {username: '', socketid: '', roomName: ''}
+            invitation: {username: '', socketid: '', roomName: ''},
+            gameHistory: null
         }
 
     }
@@ -246,6 +248,48 @@ export default class Main extends Component {
         });
     }
 
+    getUserGameHistory = socketid => {
+        this.state.socket.emit("get game history", socketid, gameHistory => {
+            let output = "No Results!";
+
+            if (gameHistory.length !== 0) {
+                output =
+                    <Table striped bordered hover size="sm">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th>Opponent</th>
+                            <th>Result</th>
+                            <th>Time</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {Object.keys(gameHistory).map((key, i) => {
+                            return (<tr key={i}>
+                                <td>{i + 1}</td>
+                                <td>{gameHistory[key].myName}</td>
+                                <td>{gameHistory[key].opponentName}</td>
+                                <td>{gameHistory[key].result}</td>
+                                <td>{gameHistory[key].time}</td>
+                            </tr>);
+                        })}
+                        </tbody>
+                    </Table>;
+            }
+
+            this.setState({
+                modal: {
+                    ...this.state.modal, normalMsg: {
+                        showNormalMsg: true,
+                        title: "Game History",
+                        msg: output
+                    }
+                }
+            });
+        });
+    }
+
     joinRoom = roomName => {
         this.state.socket.emit("join room", roomName);
         this.setState({roomName, tab: "roomTab"});
@@ -263,7 +307,8 @@ export default class Main extends Component {
                 <div className="row m-0">
                     <div className={`col-2 p-2 ${styles.leftSection}`}>
                         <h5 className="text-center">Connected Users:</h5>
-                        <UserList connectedUsers={this.state.connectedUsers}/>
+                        <UserList connectedUsers={this.state.connectedUsers}
+                                  getUserGameHistory={this.getUserGameHistory}/>
                     </div>
 
                     {this.state.tab === "mainTab" ?
@@ -339,14 +384,27 @@ export default class Main extends Component {
                     onHide={() => this.setState({modal: {...this.state.modal, showInviteGame: false}})}
                 />
 
+                {/*Invitation Reject Message*/}
                 <NormalMsgModal
                     showModal={this.state.modal.normalMsg.showNormalMsg}
                     onHide={() => this.setState({
                         modal: {...this.state.modal, normalMsg: {...this.state.normalMsg, showNormalMsg: false}}
                     })}
                     title={this.state.modal.normalMsg.title}
-                    msg={this.state.modal.normalMsg.msg}
-                />
+                >
+                    {this.state.modal.normalMsg.msg}
+                </NormalMsgModal>
+
+                {/*Game History*/}
+                <NormalMsgModal
+                    showModal={this.state.modal.normalMsg.showNormalMsg}
+                    onHide={() => this.setState({
+                        modal: {...this.state.modal, normalMsg: {...this.state.normalMsg, showNormalMsg: false}}
+                    })}
+                    title={this.state.modal.normalMsg.title}
+                >
+                    {this.state.modal.normalMsg.msg}
+                </NormalMsgModal>
 
             </div>
 

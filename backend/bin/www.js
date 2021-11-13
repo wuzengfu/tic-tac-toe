@@ -32,6 +32,7 @@ io.on("connection", socket => {
     socket.on("add user", username => {
         //set username in socket
         socket.username = username;
+        socket.gameHistory = [];
         console.log("A new user is added:  " + username);
         updateConnectedUsers();
     });
@@ -106,7 +107,7 @@ io.on("connection", socket => {
             rooms[roomName].status = "Available";
 
             //inform all clients in this room
-            io.in(roomName).emit("onePlayer left", rooms[roomName].users[0]);
+            io.in(roomName).emit("onePlayer left", rooms[roomName].users);
         } else { //if there is only one user in the room
             //delete this room if no player is in this room
             delete rooms[roomName];
@@ -162,11 +163,34 @@ io.on("connection", socket => {
                 users: rooms[roomName].users,
                 game: null,
                 started: false,
-                status: "Occupied"
+                status: "Available"
             };
             rooms[roomName].users[0].ready = false;
             rooms[roomName].users[1].ready = false;
-            updateRooms();
+
+            //update game history
+            let opponentPosition = rooms[roomName].users[0].socketid === socket.id ? 1 : 0;
+            let gameStatus = ticTacToe.gameStatus;
+            let currentTime = new Date().toLocaleTimeString();
+            io.sockets.sockets.forEach(ele => {
+                if (ele.id === rooms[roomName].users[opponentPosition].socketid) { //opponentHistory
+                    if (gameStatus !== "draw") gameStatus = "lose";
+                    ele.gameHistory.push({
+                        opponentName: socket.username,
+                        myName: ele.username,
+                        result: gameStatus,
+                        time: currentTime
+                    });
+                } else if (ele.id === socket.id) { //my history
+                    if (gameStatus !== "draw") gameStatus = "win";
+                    ele.gameHistory.push({
+                        opponentName: rooms[roomName].users[opponentPosition].username,
+                        myName: ele.username,
+                        result: gameStatus,
+                        time: currentTime
+                    });
+                }
+            });
         }
     });
 
@@ -176,6 +200,14 @@ io.on("connection", socket => {
 
     socket.on("reject invitation", inviterSocketId => {
         socket.to(inviterSocketId).emit("reject invitation", socket.username);
+    });
+
+    socket.on("get game history", (socketid, callback) => {
+        io.sockets.sockets.forEach(ele => {
+            if (ele.id === socketid) {
+                return callback(ele.gameHistory);
+            }
+        })
     });
 
     socket.on("disconnect", () => {
@@ -193,7 +225,7 @@ io.on("connection", socket => {
                         rooms[key].status = "Available"; //set room status to available
                         rooms[key].game = null; //clear the game data
                         rooms[key].started = false; //reset game status
-                        io.in(key).emit("onePlayer left", rooms[key].users[0]); //notify another user in the room
+                        io.in(key).emit("onePlayer left"); //notify another user in the room
                     }
 
                     await socket.leave(key); //remove the user from the room
