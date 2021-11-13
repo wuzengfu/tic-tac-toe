@@ -1,0 +1,39 @@
+.usernameInput {
+    font-size: 1.1rem;
+    background-color: rgb(79, 73, 122) !important;
+    color: white !important;
+    border: none;
+    text-align: center;
+}
+
+.usernameBtn {
+    margin-top: 7%;
+    margin-bottom: 6%;
+    padding-top: 2%;
+    padding-bottom: 2%;
+    font-weight: 800;
+    width: 40%;
+    color: white;
+    opacity: 0.8;
+    background-color: rgb(248, 120, 62);
+}
+
+.container {
+    background-color: rgb(103, 93, 166);
+    width: 30%;
+    padding: 1%;
+    text-align: center;
+}
+
+.innerContainer {
+    width: 80%;
+    margin: 1% auto auto;
+}
+
+.mainBackgroundColor {
+    background-color: rgb(247, 248, 245);
+}
+
+.usernameLabel {
+    color: rgb(248, 120, 62);
+}
