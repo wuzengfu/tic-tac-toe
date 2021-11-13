@@ -225,7 +225,7 @@ io.on("connection", socket => {
                         rooms[key].status = "Available"; //set room status to available
                         rooms[key].game = null; //clear the game data
                         rooms[key].started = false; //reset game status
-                        io.in(key).emit("onePlayer left"); //notify another user in the room
+                        io.in(key).emit("onePlayer left", rooms[key].users); //notify another user in the room
                     }
 
                     await socket.leave(key); //remove the user from the room

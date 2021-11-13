@@ -116,7 +116,7 @@ export default class Main extends Component {
                     ...this.state.roomDOM,
                     hideOpponentReady: true,
                     hideOpponent: true,
-                    hideMyReady: user.socketid === this.state.socket.id ? false : user.ready,
+                    hideMyReady: !(user[0].socketid === this.state.socket.id),
                     hideMyOnMoveBorder: true,
                     hideOpponentOnMoveBorder: true,
                     toggleCells: false
