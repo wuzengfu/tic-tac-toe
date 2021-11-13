@@ -183,6 +183,7 @@ export default class Main extends Component {
                 roomDOM: {
                     ...this.state.roomDOM, hideMyOnMoveBorder: true,
                     hideOpponentOnMoveBorder: true, disableReadyBtn: false,
+                    toggleCells: false
                 },
                 modal: {...this.state.modal, normalMsg: {showNormalMsg: true, title: "Game Result", msg: gameResult}},
                 gameRecord: {...initGame},
