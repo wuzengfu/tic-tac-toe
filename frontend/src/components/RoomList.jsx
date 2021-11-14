@@ -13,12 +13,13 @@ export const RoomList = (props) => {
 
     return (
         <div className="row row-cols-3">
-            {Object.keys(props.rooms).map(key =>
+            {Object.keys(props.rooms).map((key,i) =>
                 <RoomItem
                     players={getPlayers(key)}
                     status={props.rooms[key].status}
                     roomName={key}
                     joinRoom={props.joinRoom}
+                    key={i}
                 />)}
         </div>
     );
