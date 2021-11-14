@@ -32,15 +32,17 @@ export default class Welcome extends Component {
                         Welcome to Tic-Toe-toe 🎉
                     </h5>
                     <div className={styles.innerContainer}>
-                        <Form.Label className={styles.usernameLabel}>
-                            Enter your username:
-                        </Form.Label>
-                        <FormControl minLength="2" maxLength="10" type="text"
-                                     className={`${styles.usernameInput} mb-3`}
-                                     onChange={this.handleUsernameInput}/>
-                        <Button variant={"primary"} size={"sm"} className={"px-4"} onClick={this.submitForm}>
-                            <span>Go 🚗</span>
-                        </Button>
+                        <Form onSubmit={this.submitForm}>
+                            <Form.Label className={styles.usernameLabel}>
+                                Enter your username:
+                            </Form.Label>
+                            <FormControl minLength="2" maxLength="10" type="text"
+                                         className={`${styles.usernameInput} mb-3`}
+                                         onChange={this.handleUsernameInput}/>
+                            <Button variant={"primary"} size={"sm"} className={"px-4"} type={"submit"}>
+                                <span>Go 🚗</span>
+                            </Button>
+                        </Form>
                     </div>
                 </div>
             </div>
