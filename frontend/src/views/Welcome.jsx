@@ -19,7 +19,8 @@ export default class Welcome extends Component {
         if (username.length < 3 || username.length > 10) {
             alert("The length of username is between 2 and 10");
         } else {
-            window.location.href = "/main/" + this.state.username;
+            this.setState({username: ''});
+            this.props.history.push("/main/" + username);
         }
     }
 
