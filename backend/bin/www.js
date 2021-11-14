@@ -103,11 +103,16 @@ io.on("connection", socket => {
                 }
             });
 
+            if (rooms[roomName].started) {
+                rooms[roomName].users[0].ready = false;
+                rooms[roomName].started = false;
+            }
+
             //update room status
             rooms[roomName].status = "Available";
 
             //inform all clients in this room
-            io.in(roomName).emit("onePlayer left", rooms[roomName].users);
+            io.in(roomName).emit("onePlayer left", socket.id);
         } else { //if there is only one user in the room
             //delete this room if no player is in this room
             delete rooms[roomName];
@@ -224,8 +229,9 @@ io.on("connection", socket => {
                         rooms[key].users.splice(i, 1); //remove the user who disconnects
                         rooms[key].status = "Available"; //set room status to available
                         rooms[key].game = null; //clear the game data
+                        rooms[key].users[0].ready = rooms[key].started ? false : rooms[key].users[0].ready; //change the last player's ready' status to false if the opponent quits during the game
                         rooms[key].started = false; //reset game status
-                        io.in(key).emit("onePlayer left", rooms[key].users); //notify another user in the room
+                        io.in(key).emit("onePlayer left", socket.id); //notify another user in the room
                     }
 
                     await socket.leave(key); //remove the user from the room

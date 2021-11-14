@@ -38,6 +38,7 @@ export default class Main extends Component {
                 hideMyOnMoveBorder: true,
                 hideOpponentOnMoveBorder: true,
                 toggleCells: false,
+                gameStarted: false
             },
             modal: {
                 showGameResult: false,
@@ -110,25 +111,27 @@ export default class Main extends Component {
         });
 
         //someone leave the room
-        this.state.socket.on("onePlayer left", user => {
+        this.state.socket.on("onePlayer left", socketid => {//游戏还没开始，我准备好，我自己离开房间时，对手的Ready会出现
             this.setState({
                 roomDOM: {
                     ...this.state.roomDOM,
                     hideOpponentReady: true,
                     hideOpponent: true,
-                    hideMyReady: !(user[0].socketid === this.state.socket.id),
+                    hideMyReady: (socketid !== this.state.socketid && !this.state.roomDOM.gameStarted) ? this.state.roomDOM.hideMyReady : true,
                     hideMyOnMoveBorder: true,
                     hideOpponentOnMoveBorder: true,
-                    toggleCells: false
+                    toggleCells: false,
+                    disableReadyBtn: this.state.roomDOM.gameStarted ? false : this.state.roomDOM.disableReadyBtn,
+                    gameStarted: this.state.roomDOM.gameStarted ? false : this.state.roomDOM.gameStarted
                 },
-                gameRecord: {...initGame}
+                gameRecord: {...initGame},
             });
         });
 
         //game started
         this.state.socket.on("game start", game => {
             this.setState({
-                roomDOM: {...this.state.roomDOM, hideMyReady: true, hideOpponentReady: true},
+                roomDOM: {...this.state.roomDOM, hideMyReady: true, hideOpponentReady: true, gameStarted: true},
                 gameRecord: {...initGame}
             });
 
@@ -185,6 +188,7 @@ export default class Main extends Component {
                 roomDOM: {
                     ...this.state.roomDOM, hideMyOnMoveBorder: true,
                     hideOpponentOnMoveBorder: true, disableReadyBtn: false,
+                    gameStarted: false,
                     toggleCells: false
                 },
                 modal: {...this.state.modal, normalMsg: {showNormalMsg: true, title: "Game Result", msg: gameResult}},
