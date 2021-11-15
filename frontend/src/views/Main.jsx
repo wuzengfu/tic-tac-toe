@@ -194,7 +194,7 @@ export default class Main extends Component {
                     toggleCells: false
                 },
                 modal: {...this.state.modal, normalMsg: {showNormalMsg: true, title: "Game Result", msg: gameResult}},
-                gameRecord: {...initGame},
+                gameRecord,
                 gameResult
             });
         });
