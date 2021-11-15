@@ -111,7 +111,7 @@ export default class Main extends Component {
         });
 
         //someone leave the room
-        this.state.socket.on("onePlayer left", socketid => {//游戏还没开始，我准备好，我自己离开房间时，对手的Ready会出现
+        this.state.socket.on("onePlayer left", socketid => {
             this.setState({
                 roomDOM: {
                     ...this.state.roomDOM,
@@ -156,7 +156,8 @@ export default class Main extends Component {
                     roomDOM: {
                         ...this.state.roomDOM, hideMyOnMoveBorder: true, hideOpponentOnMoveBorder: false,
                         toggleCells: false
-                    }
+                    },
+                    gameRecord
                 });
             } else {
                 this.setState({
@@ -165,7 +166,8 @@ export default class Main extends Component {
                         hideMyOnMoveBorder: false,
                         hideOpponentOnMoveBorder: true,
                         toggleCells: true
-                    }
+                    },
+                    gameRecord
                 });
             }
         });
