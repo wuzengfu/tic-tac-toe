@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from 'react-bootstrap';
-import {useHistory} from 'react-router-dom';
 
 export const ExitBtn = () => {
     const [isHover, setIsHover] = useState(false);
-    const history = useHistory();
+
     const handleExitBtn = () => {
         window.localStorage.clear();
-        history.push("/");
+        window.location.href = "/";
     }
 
     return (
