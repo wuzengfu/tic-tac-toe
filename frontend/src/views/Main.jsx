@@ -311,14 +311,14 @@ export default class Main extends Component {
                 </div>
 
                 <div className="row m-0">
-                    <div className={`col-2 p-2 ${styles.leftSection}`}>
+                    <div className={`col-md-2 col-5 p-2 ${styles.leftSection} ${this.state.tab === "roomTab" ? "d-none d-md-block" : ""}`}>
                         <h5 className="text-center">Connected Users:</h5>
                         <UserList connectedUsers={this.state.connectedUsers}
                                   getUserGameHistory={this.getUserGameHistory}/>
                     </div>
 
                     {this.state.tab === "mainTab" ?
-                        <div className={`col-10 p-2 text-dark ${styles.rightSection}`}>
+                        <div className={`col-md-10 col-7 p-2 text-dark ${styles.rightSection}`}>
                             <button className="btn btn-outline-primary mb-2" onClick={this.handleCreateRoomBtn}>
                                 Create a room
                             </button>
@@ -326,8 +326,8 @@ export default class Main extends Component {
                             <RoomList rooms={this.state.rooms} joinRoom={this.joinRoom}/>
                         </div>
                         :
-                        <div className={`col-10 p-2 row text-dark ${styles.rightSectionRoom}`}>
-                            <div className="col-3 d-flex flex-column-reverse">
+                        <div className={`col-md-10 col-12 p-2 row text-dark ${styles.rightSectionRoom}`}>
+                            <div className="col-md-3 col-4 d-flex flex-column-reverse">
                                 <ul className="list-group">
                                     <li onClick={this.handleLeaveBtn} className="btn btn-secondary">Leave</li>
                                     <li onClick={this.handleInviteBtn} className="btn btn-success">Invite</li>
@@ -338,7 +338,7 @@ export default class Main extends Component {
 
                             </div>
 
-                            <div className="col-9">
+                            <div className="col-md-9 col-8">
                                 <div className="d-flex flex-row">
                                     <div
                                         className={`user ${styles.user} ${this.state.roomDOM.hideOpponent ? 'invisible' : ''}`}>

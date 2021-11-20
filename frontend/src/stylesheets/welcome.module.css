@@ -25,6 +25,12 @@
     text-align: center;
 }
 
+@media (max-width: 600px) {
+    .container {
+        width: 90%;
+    }
+}
+
 .innerContainer {
     width: 80%;
     margin: 1% auto auto;
